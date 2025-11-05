@@ -1,9 +1,7 @@
 # BentoBao
 
 ## Overview
-BentoBao is a hybrid application with two components:
-1. **React Frontend** - A web interface built with React, TypeScript, and Vite
-2. **Telegram Bot** - A price calculation bot for currency conversion and markup calculations
+BentoBao - это Telegram бот для расчёта цены товаров с учётом курса валют и наценки по категориям.
 
 ## Project Structure
 ```
@@ -26,9 +24,9 @@ src/
 - **Package Manager**: npm
 
 ## Configuration
-- **Frontend**: Runs on port 5000 (0.0.0.0) for Replit webview
-- **Vite Config**: Configured for Replit environment with HMR on port 5000
-- **Environment**: Bot token should be stored using Replit Secrets (BOT_TOKEN) or in a local `.env` file (not committed to git)
+- **Bot**: Запускается через `npm start` (выполняет src/index.js)
+- **Environment**: BOT_TOKEN хранится в Replit Secrets
+- **Workflow**: Настроен автоматический запуск бота при старте проекта
 
 ## Features
 The Telegram bot provides:
@@ -44,44 +42,34 @@ Price calculations support categories:
 - Discount (+25%)
 
 ## Recent Changes (2025-11-05)
-- Fixed import paths in bot.js, index.js, and priceScene.js
-- Added MARKUPS import to priceScene.js
-- Configured Vite for Replit (0.0.0.0:5000, HMR)
-- Created .env.example template for environment variables
-- Updated .gitignore to exclude .env files and env.js
-- Set up frontend workflow on port 5000
-- Configured deployment settings for autoscale with Vite preview
-- Removed exposed bot token and created secure setup instructions
+- Исправлены пути импортов в bot.js, index.js и priceScene.js
+- Добавлен импорт MARKUPS в priceScene.js
+- Удалён frontend workflow, настроен bot workflow
+- Создан .env.example для примера
+- Обновлён .gitignore для исключения секретных файлов
+- BOT_TOKEN настроен через Replit Secrets
+- Бот успешно запущен и работает
 
-## Development
-- Frontend: `npm run dev` (runs on port 5000)
-- Bot: `npm start` (runs src/index.js)
-- Build: `npm run build`
-- Lint: `npm run lint`
+## Использование
 
-## Setup Instructions
+### Запуск
+Бот настроен на автоматический запуск при открытии проекта в Replit.
+Вручную запустить можно командой: `npm start`
 
-### Frontend
-1. Install dependencies: `npm install`
-2. Run dev server: `npm run dev`
-3. Access at http://localhost:5000
+### Команды бота
+- `/start` - Приветствие
+- `/calc` - Мастер расчёта цены (пошаговый процесс)
+- `/rates` - Текущие курсы USD и CNY от Сбербанка
+- `/convert [сумма]` - Конвертация рублей в USD/CNY
 
-### Telegram Bot
-1. Create a `.env` file based on `.env.example`
-2. Add your Telegram bot token: `BOT_TOKEN=your_token_here`
-3. Or use Replit Secrets to store BOT_TOKEN
-4. Run the bot: `npm start`
+### Настройка BOT_TOKEN
+1. Найдите @BotFather в Telegram
+2. Создайте бота командой /newbot
+3. Скопируйте токен
+4. Добавьте BOT_TOKEN в Replit Secrets (уже настроено)
 
-## Deployment
-The project is configured for Replit autoscale deployment:
-- Build: `npm run build`
-- Run: `npx vite preview --host 0.0.0.0 --port 5000`
-
-For the Telegram bot in production, you'll need to set up a separate deployment process or run it as a background service.
-
-## Notes
-- The frontend and bot are separate components
-- Bot token must be kept secure - use Replit Secrets or a local .env file (never commit to git)
-- Exchange rates are cached for 5 minutes
-- The bot uses Russian language for all interactions
-- Frontend deployment uses Vite preview mode for production serving
+## Технические детали
+- Курсы валют парсятся с сайта valuta24.ru (раздел Сбербанк)
+- Кэширование курсов: 5 минут
+- Все взаимодействия на русском языке
+- Используется Telegraf для работы с Telegram Bot API
