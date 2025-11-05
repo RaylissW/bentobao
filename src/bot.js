@@ -1,6 +1,6 @@
-// src/bot/bot.js
+// src/bot.js
 import { Telegraf, Scenes, session } from 'telegraf';
-import { getSberRates } from '../parser.js';
+import { getSberRates } from './parser.js';
 import priceWizard from './scenes/priceScene.js';
 
 const stage = new Scenes.Stage([priceWizard]);

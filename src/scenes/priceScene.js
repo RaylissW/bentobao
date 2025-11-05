@@ -1,7 +1,7 @@
-// src/bot/scenes/priceScene.js
+// src/scenes/priceScene.js
 import { Scenes } from 'telegraf';
-import { getSberRates } from '../../parser.js';
-import { CATEGORIES, calculatePrice } from '../utils/formulas.js';
+import { getSberRates } from '../parser.js';
+import { CATEGORIES, MARKUPS, calculatePrice } from '../utils/formulas.js';
 
 const priceWizard = new Scenes.WizardScene(
   'PRICE_WIZARD',
