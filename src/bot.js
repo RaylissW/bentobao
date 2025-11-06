@@ -1,9 +1,10 @@
-// src/bot.js
+// src/bot/bot.js
 import { Telegraf, Scenes, session } from 'telegraf';
 import { getSberRates } from './parser.js';
 import priceWizard from './scenes/priceScene.js';
+import priceAdjustment, { getTaobaoRate } from './scenes/adjustScene.js';
 
-const stage = new Scenes.Stage([priceWizard]);
+const stage = new Scenes.Stage([priceWizard, priceAdjustment]);
 
 export function createBot(token) {
   const bot = new Telegraf(token);
@@ -11,22 +12,43 @@ export function createBot(token) {
   bot.use(session());
   bot.use(stage.middleware());
 
-  // === Команды ===
-  bot.start((ctx) => ctx.reply('Привет! Используйте /calc для расчёта цены.'));
+  bot.start((ctx) => {
+    ctx.replyWithMarkdown(`
+    *Привет! Я бот для расчёта цен*
+
+    *Доступные команды:*
+
+    /calc — рассчитать цену товара для покупателя
+    /adjust — задать курс USD через Taobao
+    /rates — курсы Сбербанка 
+
+    _Начните с /calc или /adjust_
+    `.trim());
+  });
 
   bot.command('calc', (ctx) => ctx.scene.enter('PRICE_WIZARD'));
+  bot.command('adjust', (ctx) => ctx.scene.enter('PRICE_ADJUSTMENT'));
 
   bot.command('rates', async (ctx) => {
     const rates = await getSberRates();
-    const time = new Date().toLocaleTimeString('ru-RU');
+    const taobao = getTaobaoRate();
+    const time = new Date().toLocaleTimeString('ru-RU', { 
+      timeZone: 'Asia/Yekaterinburg',  // +5 от UTC
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     const usd = rates.usd || 0;
     const cny = rates.cny || 0;
 
-    ctx.replyWithMarkdownV2(`
-*Курсы Сбербанка*
+    ctx.replyWithMarkdown(`
+*Курсы валют*
 
-*USD*: \`${usd} ₽\`
-*CNY*: \`${cny} ₽\`
+*Сбербанк (покупка):*
+• *USD*: \`${usd} ₽\`
+• *CNY*: \`${cny} ₽\`
+
+*Taobao (US/CN)*: \`${taobao || 'не задан'}\`
 
 _Обновлено: ${time}_
     `.trim());
@@ -47,22 +69,22 @@ _Обновлено: ${time}_
     const usd = (amount / rates.usd).toFixed(2);
     const cny = (amount / rates.cny).toFixed(2);
 
-    ctx.replyWithMarkdownV2(`
-*${amount} RUB →*
+    ctx.replyWithMarkdown(`
+*${amount.toLocaleString()} RUB →*
 
 *USD*: \`${usd}\`
 *CNY*: \`${cny}\`
     `.trim());
   });
 
-  // Любой текст → помощь
   bot.on('text', (ctx) => {
-    ctx.replyWithMarkdownV2(`
+    ctx.replyWithMarkdown(`
 *Команды:*
 
-/calc — рассчитать цену
-/rates — курсы
-/convert 5000 — конвертация
+/calc — цена товара
+/adjust — курс Taobao
+/rates — все курсы
+
     `.trim());
   });
 

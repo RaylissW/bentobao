@@ -1,10 +1,10 @@
 
 export const MARKUPS = {
-  cosplay: 1.5,   // +50%
-  cosmetics: 1.4, // +40%
-  kpop: 1.35,     // +35%
-  tech: 1.6,      // +60%
-  discount: 1.25  // +25%
+  cosplay: 1.2,   // +20%
+  cosmetics: 1.15, // +10%
+  kpop: 1.25,     // +25%
+  tech: 1.30,      // +30%
+  discount: 1.10  // +10%
 };
 
 export const CATEGORIES = {
@@ -12,10 +12,11 @@ export const CATEGORIES = {
   cosmetics: 'Косметика',
   kpop: 'К-поп',
   tech: 'Техника',
-  discount: 'Скидочная'
+  discount: 'Ринкан'
 };
 
-export function calculatePrice(costRub, category) {
-  const markup = MARKUPS[category] || 1;
+export function calculatePrice(costRub, category, currency) {
+  const additive = (currency === 'taobao'|| currency === 'usd') ? 0.035 : 0
+  const markup = MARKUPS[category] || 1 + additive
   return costRub * markup;
 }
