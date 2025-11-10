@@ -17,6 +17,6 @@ export const CATEGORIES = {
 
 export function calculatePrice(costRub, category, currency) {
   const additive = (currency === 'taobao'|| currency === 'usd') ? 0.035 : 0
-  const markup = MARKUPS[category] || 1 + additive
+  const markup = (MARKUPS[category] + additive) || 1 + additive
   return costRub * markup;
 }

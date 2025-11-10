@@ -1,4 +1,4 @@
-// src/bot/bot.js
+
 import { Telegraf, Scenes, session } from 'telegraf';
 import { getSberRates } from './parser.js';
 import priceWizard from './scenes/priceScene.js';
