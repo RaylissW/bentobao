@@ -112,7 +112,7 @@ const priceWizard = new Scenes.WizardScene(
       `Ввод: \`${amount} ${currency === 'usd' ? '$' : '¥'}\`\n` +
       `Конвертация: *${path}*\n` +
       (currency === 'taobao'
-          ? `Конвертация в USD: \`${(amount * taobaoRate).toFixed(2)} $\`\n`
+          ? `Конвертация в USD: \`${(amount * taobaoRate).toFixed(3)} $\`\n`
           : ''
       ) +
       `Себестоимость: \`${costRub.toFixed(2)} ₽\`\n` +
