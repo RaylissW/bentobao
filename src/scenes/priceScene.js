@@ -119,7 +119,7 @@ const priceWizard = new Scenes.WizardScene(
       `КУРС: * ${usedRate} ${currency === 'usd' ? '$' : '¥'}*\n\n` +
       `Категория: *${CATEGORIES[category]}*\n` +
       `Наценка: *+${markupPercent}%*\n\n` +
-      `Комиссия: *+${additive.toFixed(3)}%*\n\n` +
+      `Комиссия: *+${(additive *100).toFixed(2)}%*\n\n` +
       `Цена для покупателя: *${Math.ceil(finalPrice)} ₽*`,
       { parse_mode: 'Markdown' }
     );
