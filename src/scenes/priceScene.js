@@ -71,13 +71,13 @@ const priceWizard = new Scenes.WizardScene(
 
     if (currency === 'usd') {
       // Прямой: USD → RUB
-      usedRate = (sberRates.usd + 2) || 0;
+      usedRate = sberRates.usd  || 0;
       costRub = amount * usedRate;
       path = `USD → RUB (Сбер)`;
 
     } else if (currency === 'cny') {
       // Прямой: CNY → RUB
-      usedRate = (sberRates.cny + 2) || 0;
+      usedRate = sberRates.cny  || 0;
       costRub = amount * usedRate;
       path = `CNY → RUB (Сбер)`;
 
@@ -93,7 +93,7 @@ const priceWizard = new Scenes.WizardScene(
       }
 
       const amountUSD = amount * taobaoRate; // CNY → USD
-      costRub = amountUSD  * (sberRates.usd + 2);
+      costRub = amountUSD  * sberRates.usd;
       path = `US/CN (Taobao: ${taobaoRate}) → RUB (Сбер)`;
       usedRate = sberRates.usd;
     }
@@ -103,7 +103,7 @@ const priceWizard = new Scenes.WizardScene(
       return ctx.scene.leave();
     }
 
-    additive += usedRate/(usedRate - 2) - 1
+    additive += (usedRate + 2)/usedRate - 1
     const finalPrice = calculatePrice(costRub, category, additive);
     const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
 
@@ -116,11 +116,11 @@ const priceWizard = new Scenes.WizardScene(
           : ''
       ) +
       `Себестоимость: \`${costRub.toFixed(2)} ₽\`\n` +
-      `КУРС: * ${usedRate-2} ${currency === 'usd' ? '$' : '¥'}*\n\n` +
+      `КУРС: * ${usedRate-1.8} ${currency === 'usd' ? '$' : '¥'}*\n\n` +
       `Категория: *${CATEGORIES[category]}*\n` +
       `Наценка: *+${markupPercent}%*\n\n` +
       `Комиссия: *+${additive.toFixed(3)}%*\n\n` +
-      `Цена для покупателя: *${finalPrice.toFixed(2)} ₽*`,
+      `Цена для покупателя: *${Math.ceil(finalPrice)} ₽*`,
       { parse_mode: 'Markdown' }
     );
 
