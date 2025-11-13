@@ -116,7 +116,7 @@ const priceWizard = new Scenes.WizardScene(
           : ''
       ) +
       `Себестоимость: \`${costRub.toFixed(2)} ₽\`\n` +
-      `КУРС: * ${usedRate-1.8} ${currency === 'usd' ? '$' : '¥'}*\n\n` +
+      `КУРС: * ${usedRate} ${currency === 'usd' ? '$' : '¥'}*\n\n` +
       `Категория: *${CATEGORIES[category]}*\n` +
       `Наценка: *+${markupPercent}%*\n\n` +
       `Комиссия: *+${additive.toFixed(3)}%*\n\n` +
