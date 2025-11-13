@@ -71,13 +71,13 @@ const priceWizard = new Scenes.WizardScene(
 
     if (currency === 'usd') {
       // Прямой: USD → RUB
-      usedRate = sberRates.usd  || 0;
+      usedRate = Math.ceil(sberRates.usd)  || 0;
       costRub = amount * usedRate;
       path = `USD → RUB (Сбер)`;
 
     } else if (currency === 'cny') {
       // Прямой: CNY → RUB
-      usedRate = sberRates.cny  || 0;
+      usedRate =  Math.ceil(sberRates.cny)  || 0;
       costRub = amount * usedRate;
       path = `CNY → RUB (Сбер)`;
 
@@ -93,7 +93,7 @@ const priceWizard = new Scenes.WizardScene(
       }
 
       const amountUSD = amount * taobaoRate; // CNY → USD
-      costRub = amountUSD  * sberRates.usd;
+      costRub = amountUSD  *  Math.ceil(sberRates.usd);
       path = `US/CN (Taobao: ${taobaoRate}) → RUB (Сбер)`;
       usedRate = sberRates.usd;
     }
