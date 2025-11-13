@@ -15,7 +15,7 @@ export const CATEGORIES = {
   discount: 'Ринкан'
 };
 
-export function calculatePrice(costRub, category, currency) {
+export function calculatePrice(costRub, category, additive) {
   const markup = (MARKUPS[category] + additive) || 1 + additive
   return costRub * markup;
 }

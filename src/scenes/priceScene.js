@@ -106,7 +106,7 @@ const priceWizard = new Scenes.WizardScene(
       return ctx.scene.leave();
     }
 
-    const finalPrice = calculatePrice(costRub, category, currency, additive);
+    const finalPrice = calculatePrice(costRub, category, additive);
     const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
 
     await ctx.editMessageText(
