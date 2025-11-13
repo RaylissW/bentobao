@@ -1,12 +1,11 @@
 
+
 import { Telegraf, Scenes, session } from 'telegraf';
 import { getSberRates } from './parser.js';
 import priceWizard from './scenes/priceScene.js';
 import priceAdjustment, { getTaobaoRate } from './scenes/adjustScene.js';
-import addProductScene from './scenes/addProductScene.js';
-import addClientScene from './scenes/addClientScene.js';
 
-const stage = new Scenes.Stage([priceWizard, priceAdjustment, addProductScene, addClientScene]);
+const stage = new Scenes.Stage([priceWizard, priceAdjustment]);
 
 export function createBot(token) {
   const bot = new Telegraf(token);
@@ -30,13 +29,11 @@ export function createBot(token) {
 
   bot.command('calc', (ctx) => ctx.scene.enter('PRICE_WIZARD'));
   bot.command('adjust', (ctx) => ctx.scene.enter('PRICE_ADJUSTMENT'));
-  //bot.command('addproduct', (ctx) => ctx.scene.enter('ADD_PRODUCT'));
- // bot.command('addclient', (ctx) => ctx.scene.enter('ADD_CLIENT'));
 
   bot.command('rates', async (ctx) => {
     const rates = await getSberRates();
     const taobao = getTaobaoRate();
-    const time = new Date().toLocaleTimeString('ru-RU', { 
+    const time = new Date().toLocaleTimeString('ru-RU', {
       timeZone: 'Asia/Yekaterinburg',  // +5 от UTC
       hour: '2-digit',
       minute: '2-digit'
