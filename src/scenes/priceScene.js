@@ -103,7 +103,7 @@ const priceWizard = new Scenes.WizardScene(
       return ctx.scene.leave();
     }
 
-    additive += (usedRate + 1.9)/usedRate - 1
+    additive += (usedRate + 1.8)/usedRate - 1
     const finalPrice = calculatePrice(costRub, category, additive);
     const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
 
