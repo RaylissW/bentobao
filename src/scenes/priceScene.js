@@ -67,6 +67,7 @@ const priceWizard = new Scenes.WizardScene(
     let costRub = 0;
     let path = '';
     let usedRate = 0;
+    let additive = 0.035;
 
     if (currency === 'usd') {
       // Прямой: USD → RUB
