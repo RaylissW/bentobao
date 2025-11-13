@@ -16,10 +16,6 @@ export const CATEGORIES = {
 };
 
 export function calculatePrice(costRub, category, additive = 0) {
-  console.log(additive);
-  console.log(costRub);
-  console.log(category);
-  console.log("ssssssssssssssssssssssss");
   const markup = (MARKUPS[category] + additive) || 1 + additive
   return costRub * markup;
 }
