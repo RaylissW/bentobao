@@ -67,10 +67,10 @@ const priceWizard = new Scenes.WizardScene(
     let costRub = 0;
     let path = '';
     let usedRate = 0;
-    let additive = (currency === 'taobao'|| currency === 'usd') ? 0.035 : 0
+
     if (currency === 'usd') {
       // Прямой: USD → RUB
-      usedRate = (sberRates.usd + 2) || 0;
+      usedRate = (sberRates.usd + 1.5) || 0;
       costRub = amount * usedRate;
       path = `USD → RUB (Сбер)`;
 
@@ -102,7 +102,7 @@ const priceWizard = new Scenes.WizardScene(
       return ctx.scene.leave();
     }
 
-    const finalPrice = calculatePrice(costRub, category, additive);
+    const finalPrice = calculatePrice(costRub, category, currency);
     const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
 
     await ctx.editMessageText(
@@ -114,9 +114,7 @@ const priceWizard = new Scenes.WizardScene(
           : ''
       ) +
       `Себестоимость: \`${costRub.toFixed(2)} ₽\`\n` +
-      `КУРС: ${currency === 'cny' ? (sberRates.cny +'¥') : (sberRates.usd + '$')}\`\n`+
-      `Категория: *${CATEGORIES[category]}*\n ` +
-      `Комиссия: *+${additive}%*\n\n\ ` +
+      `Категория: *${CATEGORIES[category]}*\n` +
       `Наценка: *+${markupPercent}%*\n\n` +
       `Цена для покупателя: *${finalPrice.toFixed(2)} ₽*`,
       { parse_mode: 'Markdown' }
