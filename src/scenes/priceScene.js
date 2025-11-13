@@ -45,6 +45,7 @@ const priceWizard = new Scenes.WizardScene(
     const keyboard = Object.entries(CATEGORIES).map(([key, name]) => [{
       text: name, callback_data: key
     }]);
+    console.log(currency)
 
     const symbol = currency === 'usd' ? '$' : '¥';
     const label = currency === 'taobao' ? '¥ (расч)' : symbol;
@@ -61,6 +62,8 @@ const priceWizard = new Scenes.WizardScene(
     const category = ctx.callbackQuery?.data;
     if (!CATEGORIES[category]) return;
 
+    console.log('PRICE');
+    console.log(category);
     const { amount, currency } = ctx.wizard.state;
     const sberRates = await getSberRates();
     const taobaoRate = getTaobaoRate();
@@ -106,6 +109,8 @@ const priceWizard = new Scenes.WizardScene(
       return ctx.scene.leave();
     }
 
+    console.log('PRICE1');
+    console.log(costRub);
     const finalPrice = calculatePrice(costRub, category, additive);
     const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
 
