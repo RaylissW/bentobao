@@ -30,8 +30,8 @@ export function createBot(token) {
 
   bot.command('calc', (ctx) => ctx.scene.enter('PRICE_WIZARD'));
   bot.command('adjust', (ctx) => ctx.scene.enter('PRICE_ADJUSTMENT'));
-  bot.command('addproduct', (ctx) => ctx.scene.enter('ADD_PRODUCT'));
-  bot.command('addclient', (ctx) => ctx.scene.enter('ADD_CLIENT'));
+  //bot.command('addproduct', (ctx) => ctx.scene.enter('ADD_PRODUCT'));
+ // bot.command('addclient', (ctx) => ctx.scene.enter('ADD_CLIENT'));
 
   bot.command('rates', async (ctx) => {
     const rates = await getSberRates();
