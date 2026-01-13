@@ -67,7 +67,7 @@ const priceWizard = new Scenes.WizardScene(
     let costRub = 0;
     let path = '';
     let usedRate = 0;
-    let additive = 0.035;
+    let additive = (currency === 'cny') ? 0.67: 0.66;
 
     if (currency === 'usd') {
       // Прямой: USD → RUB
@@ -103,7 +103,6 @@ const priceWizard = new Scenes.WizardScene(
       return ctx.scene.leave();
     }
 
-    additive += (usedRate + 1.8)/usedRate - 1
     const finalPrice = calculatePrice(costRub, category, additive);
     const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
 
