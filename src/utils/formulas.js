@@ -1,4 +1,3 @@
-
 export const MARKUPS = {
   cosplay: 1.2,   // +20%
   cosmetics: 1.15, // +10%
@@ -15,7 +14,7 @@ export const CATEGORIES = {
   discount: 'Ринкан'
 };
 
-export function calculatePrice(costRub, category, additive = 0) {
-  const markup = (MARKUPS[category] + additive) || 1 + additive
+export function calculatePrice(costRub, category) {
+  const markup = MARKUPS[category] || 1;  // Только категорийная наценка, комиссии уже в costRub
   return costRub * markup;
 }
