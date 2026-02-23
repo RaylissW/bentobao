@@ -20,10 +20,10 @@ export async function getSberRates() {
 
   try {
     const { data } = await axios.get(
-      'https://perm.valuta24.ru/perm/sberbank/',
-      { 
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }, 
-        timeout: 10000 
+      'https://bankiros.ru/bank/sberbank/currency',
+      {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        timeout: 10000
       }
     );
 
@@ -31,15 +31,27 @@ export async function getSberRates() {
 
     console.log('HTML загружен, длина:', html.length);
 
-    // Улучшенная регулярка — ищем по названию + второй span (продажа)
-    const usdMatch = html.match(/Доллар США в Сбербанке[\s\S]*?<span class="one">[^<]+<\/span>[\s\S]*?<span class="one">([^<]+)<\/span>/i);
-    const cnyMatch = html.match(/Китайский юань в Сбербанке[\s\S]*?<span class="one">[^<]+<\/span>[\s\S]*?<span class="one">([^<]+)<\/span>/i);
+    // Ищем строку с USD и извлекаем курс продажи (3-й столбец)
+  //  const usdMatch = html.match(/<tr[^>]*class="[^"]*xxx-currency-grid__row--cur[^"]*"[^>]*>[\s\S]*?<img[^>]*alt="[^"]*USD[^"]*"[^>]*>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text="[^"]*"[^>]*>([^<]+)<\/span>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text="[^"]*"[^>]*>([^<]+)<\/span>/i);
+    // Ищем строку с CNY и извлекаем курс продажи (3-й столбец)
+    //const cnyMatch = html.match(/<tr[^>]*class="[^"]*xxx-currency-grid__row--cur[^"]*"[^>]*>[\s\S]*?<img[^>]*alt="[^"]*CNY[^"]*"[^>]*>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text="[^"]*"[^>]*>([^<]+)<\/span>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text="[^"]*"[^>]*>([^<]+)<\/span>/i);
 
+    const usdMatch = html.match(/<tr[^>]*class="[^"]*xxx-currency-grid__row--cur[^"]*"[^>]*>[\s\S]*?<img[^>]*alt="[^"]*USD[^"]*"[^>]*>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text[^>]*>([^<]+)<\/span>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text[^>]*>([^<]+)<\/span>/i);
+
+// Ищем строку с CNY
+    const cnyMatch = html.match(/<tr[^>]*class="[^"]*xxx-currency-grid__row--cur[^"]*"[^>]*>[\s\S]*?<img[^>]*alt="[^"]*CNY[^"]*"[^>]*>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text[^>]*>([^<]+)<\/span>[\s\S]*?<td[^>]*class="[^"]*xxx-currency-grid__default-h[^"]*"[^>]*>[\s\S]*?<span[^>]*class="cursor-pointer"[^>]*data-js-copy-text[^>]*>([^<]+)<\/span>/i);
+
+// Извлекаем курсы продажи (вторая группа - [2])
+    const usdSellRate = usdMatch && usdMatch[2] ? parseFloat(usdMatch[2].replace(',', '.')) : 0;
+    const cnySellRate = cnyMatch && cnyMatch[2] ? parseFloat(cnyMatch[2].replace(',', '.')) : 0;
+
+    console.log('USD курс продажи:', usdSellRate); // Должно быть 78.2
+    console.log('CNY курс продажи:', cnySellRate); // Должно быть 11.78
     console.log('USD raw match:', usdMatch);
     console.log('CNY raw match:', cnyMatch);
 
-    const usdVal = usdMatch && usdMatch[1] ? +usdMatch[1].replace(',', '.') : 0;
-    const cnyVal = cnyMatch && cnyMatch[1] ? +cnyMatch[1].replace(',', '.') : 0;
+    const usdVal = usdMatch && usdMatch[2] ? +usdMatch[2].replace(',', '.') : 0;
+    const cnyVal = cnyMatch && cnyMatch[2] ? +cnyMatch[2].replace(',', '.') : 0;
 
     console.log('Сбер (парсинг):', { usd: usdVal, cny: cnyVal });
 
