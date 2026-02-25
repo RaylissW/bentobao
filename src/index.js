@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { createBot } from './bot.js';
 
-const bot = createBot("7987270087:AAEiHlwUdZhg59zKL45cezAgdMNIA410EYc");
+const bot = createBot(process.env.BOT_TOKEN);
 
 bot.launch()
   .then(() => console.log('Бот запущен!'))
