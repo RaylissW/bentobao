@@ -63,6 +63,7 @@ app.post('/api/calculate', (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Сервер запущен на http://localhost:${PORT}`);
+// Вариант А — самый простой
+app.listen(3000, '0.0.0.0', () => {
+  console.log('Сервер запущен на http://0.0.0.0:3000');
 });
