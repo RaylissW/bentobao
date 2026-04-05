@@ -1,0 +1,101 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.calculator {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    padding: 35px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    color: white;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 15px;
+    opacity: 0.9;
+}
+
+input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 18px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.9);
+    color: #333;
+}
+
+.markup-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 20px 0 25px;
+}
+
+.markup-buttons button {
+    padding: 14px 10px;
+    font-size: 15px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.25);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.markup-buttons button:hover,
+.markup-buttons button.active {
+    background: white;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.btn-calculate {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: bold;
+    background: white;
+    color: #667eea;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.result {
+    background: rgba(0,0,0,0.3);
+    padding: 20px;
+    border-radius: 12px;
+    min-height: 120px;
+    font-size: 20px;
+    line-height: 1.5;
+    text-align: center;
+}

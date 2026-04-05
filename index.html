@@ -1,13 +1,148 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bentobao</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор цены</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .calc {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 20px;
+      width: 420px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+    h1 { margin: 0 0 25px; text-align: center; font-size: 26px; }
+    label { display: block; margin: 15px 0 6px; font-size: 15px; }
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .markup-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    button {
+      padding: 14px;
+      font-size: 15px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.25);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover, button.active {
+      background: white;
+      color: #2575fc;
+      font-weight: bold;
+    }
+    .result {
+      margin-top: 25px;
+      padding: 20px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 15px;
+      font-size: 20px;
+      line-height: 1.6;
+    }
+    .btn-calc {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      background: #fff;
+      color: #2575fc;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="calc">
+  <h1>Калькулятор цены</h1>
+
+  <label>Стоимость товара (USD)</label>
+  <input type="number" id="amount" step="0.01" placeholder="Например: 12.99" value="">
+
+  <label>Курс доллара (RUB)</label>
+  <input type="number" id="usdRate" step="0.01" placeholder="Например: 82.70" value="82.7">
+
+  <label>Наценка / Категория</label>
+  <div class="markup-buttons">
+    <button data-markup="1.20" class="active">Косплей (+20%)</button>
+    <button data-markup="1.15">Косметика (+15%)</button>
+    <button data-markup="1.25">К-поп (+25%)</button>
+    <button data-markup="1.30">Техника (+30%)</button>
+    <button data-markup="1.10">Ринкан (+10%)</button>
+  </div>
+
+  <button class="btn-calc" onclick="calculate()">Рассчитать цену</button>
+
+  <div class="result" id="result">Результат появится здесь</div>
+</div>
+
+<script>
+  let currentMarkup = 1.20;
+
+  // Выбор наценки
+  document.querySelectorAll('button[data-markup]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('button[data-markup]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMarkup = parseFloat(btn.dataset.markup);
+    });
+  });
+
+  function calculate() {
+    const amountUSD = parseFloat(document.getElementById('amount').value);
+    const usdRate = parseFloat(document.getElementById('usdRate').value);
+
+    if (!amountUSD || !usdRate) {
+      document.getElementById('result').innerHTML = 'Введите стоимость и курс доллара!';
+      return;
+    }
+
+    const costRub = amountUSD * usdRate;                    // себестоимость
+    const finalPrice = Math.ceil(costRub * currentMarkup); // итоговая цена
+
+    const markupPercent = ((currentMarkup - 1) * 100).toFixed(0);
+
+    document.getElementById('result').innerHTML = `
+        <strong>Ввод:</strong> ${amountUSD} ₽<br>
+        <strong>Себестоимость:</strong> ${costRub.toFixed(2)} ₽<br>
+        <strong>КУРС:</strong> ${usdRate} ₽<br>
+        <strong>Наценка:</strong> +${markupPercent}%<br><br>
+        <strong>Комиссия:</strong> +${markupPercent}%<br><br>
+
+        <strong style="font-size: 24px; color: #fff;">Итоговая цена: ${finalPrice} ₽</strong>
+      `;
+  }
+
+  // Расчёт по нажатию Enter
+  document.getElementById('amount').addEventListener('keypress', e => {
+    if (e.key === 'Enter') calculate();
+  });
+  document.getElementById('usdRate').addEventListener('keypress', e => {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
 </html>

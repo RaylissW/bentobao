@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор цены</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="calculator">
+    <h1>Калькулятор цены</h1>
+
+    <div class="input-group">
+        <label>Стоимость товара (в USD)</label>
+        <input type="number" id="amount" step="0.01" placeholder="Например: 12.99">
+    </div>
+
+    <div class="input-group">
+        <label>Курс доллара (RUB)</label>
+        <input type="number" id="usdRate" step="0.01" value="82.7">
+    </div>
+
+    <label>Категория / Наценка</label>
+    <div class="markup-buttons" id="markupButtons">
+        <!-- Кнопки будут добавлены через JS -->
+    </div>
+
+    <button onclick="calculatePrice()" class="btn-calculate">Рассчитать цену</button>
+    <button onclick="updateRate()" class="btn-calculate">Обновить курс доллара</button>
+
+    <div class="result" id="result">
+        Результат появится здесь
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

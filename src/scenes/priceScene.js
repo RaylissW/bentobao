@@ -1,22 +1,14 @@
 import { Scenes } from 'telegraf';
 import { getSberRates } from '../parser.js';
 import { CATEGORIES, MARKUPS, calculatePrice } from '../utils/formulas.js';
-import { getTaobaoRate } from './adjustScene.js'; // ← импортируем курс
-
-// Определяем множители комиссий на основе реальных потерь (из твоих расчётов)
-// Эти значения учитывают конвертационные потери и сервисные комиссии, чтобы себестоимость была точной и ты не работала в убыток
-const COMMISSION_MULTIPLIERS = {
-  usd: 1.0653,  // ~3.43% конверт (RUB→UZS→USD) + ~3% сервис = +6.53% всего
-  cny: 1.0668,  // ~6.68% включая 1% при переводе на Alipay
-  taobao: 1.0653  // Для taobao используем USD-множитель, т.к. идёт через USD
-};
+import { getTaobaoRate } from './adjustScene.js';
 
 const priceWizard = new Scenes.WizardScene(
   'PRICE_WIZARD',
 
   // Шаг 1: Ввод стоимости
   async (ctx) => {
-    await ctx.reply('Здравствуйте! Введите стоимость товара (USD, CNY):');
+    await ctx.reply('Здравствуйте! Введите стоимость товара (в USD или CNY):');
     return ctx.wizard.next();
   },
 
@@ -35,14 +27,14 @@ const priceWizard = new Scenes.WizardScene(
         inline_keyboard: [
           [{ text: 'USD', callback_data: 'usd' }],
           [{ text: 'CNY', callback_data: 'cny' }],
-          [{ text: 'US/CN', callback_data: 'taobao' }]
+          [{ text: 'US/CN (Taobao)', callback_data: 'taobao' }]
         ]
       }
     });
     return ctx.wizard.next();
   },
 
-  // Шаг 3: Выбор валюты → категория
+  // Шаг 3: Выбор категории
   async (ctx) => {
     const currency = ctx.callbackQuery?.data;
     if (!['usd', 'cny', 'taobao'].includes(currency)) return;
@@ -54,7 +46,7 @@ const priceWizard = new Scenes.WizardScene(
     }]);
 
     const symbol = currency === 'usd' ? '$' : '¥';
-    const label = currency === 'taobao' ? '¥ (расч)' : symbol;
+    const label = currency === 'taobao' ? '¥ (Taobao)' : symbol;
 
     await ctx.editMessageText(
       `Стоимость: *${ctx.wizard.state.amount} ${label}*\nВыберите категорию:`,
@@ -63,86 +55,91 @@ const priceWizard = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
 
-  // Шаг 4: Расчёт
+  // Шаг 4: Расчёт с защитой от таймаута
   async (ctx) => {
     const category = ctx.callbackQuery?.data;
     if (!CATEGORIES[category]) return;
 
     const { amount, currency } = ctx.wizard.state;
-    const sberRates = await getSberRates();
-    const taobaoRate = getTaobaoRate();
 
-    let costRub = 0;
-    let path = '';
-    let usedRate = 0;
+    try {
+      // Добавляем таймаут на получение курсов (15 секунд)
+      const ratesPromise = getSberRates();
+      const sberRates = await Promise.race([
+        ratesPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 15000))
+      ]);
 
-    // Убрали additive, т.к. теперь комиссии встроены в множители (чтобы избежать дублирования и убытка)
-    // Себестоимость теперь = amount * sberRate * multiplier, с округлением вверх на финальной себестоимости
-    const multiplier = COMMISSION_MULTIPLIERS[currency] || 1; // fallback на 1, если не найдено
-    const commissionPercent = ((multiplier - 1) * 100).toFixed(2); // Для вывода комиссии
+      const taobaoRate = getTaobaoRate();
 
-    if (currency === 'usd') {
-      usedRate = sberRates.usd || 0;
-      if (usedRate <= 0) {
-        await ctx.reply('Курс USD недоступен. Попробуйте позже.');
+      let costRub = 0;
+      let path = '';
+      let usedRate = 0;
+      let commissionRub = 0;
+      let amountUSD = 0;
+
+      if (currency === 'usd') {
+        usedRate = sberRates.usd || 0;
+        commissionRub = amount * 2;
+        costRub = amount * (usedRate + 2);
+        path = `USD → RUB (Сбер +2 ₽)`;
+
+      } else if (currency === 'cny') {
+        usedRate = sberRates.cny || 0;
+        commissionRub = amount * 1.5;
+        costRub = amount * (usedRate + 1.5);
+        path = `CNY → RUB (Сбер +1.5 ₽)`;
+
+      } else if (currency === 'taobao') {
+        if (!taobaoRate || taobaoRate === 0) {
+          await ctx.reply('Курс Taobao не задан! Сначала используйте /adjust');
+          return ctx.scene.leave();
+        }
+        if (!sberRates.usd) {
+          await ctx.reply('Курс USD недоступен. Попробуйте позже.');
+          return ctx.scene.leave();
+        }
+
+        amountUSD = amount / taobaoRate;
+        const usdWithFee = sberRates.usd + 2;
+        const baseCost = amountUSD * usdWithFee;
+        const taobaoFee = baseCost * 0.035;
+
+        costRub = baseCost + taobaoFee;
+        commissionRub = amountUSD * 2 + taobaoFee;
+        path = `US/CN (Taobao: ${taobaoRate.toFixed(4)}) → RUB (Сбер +2 ₽ +3.5%)`;
+        usedRate = usdWithFee;
+      }
+
+      if (costRub === 0) {
+        await ctx.reply('Не удалось рассчитать. Попробуйте позже.');
         return ctx.scene.leave();
       }
-      costRub = Math.ceil(amount * usedRate * multiplier); // Округление вверх здесь, чтобы покрыть все копейки и избежать убытка
-      path = `USD → RUB (Сбер)`;
 
-    } else if (currency === 'cny') {
-      usedRate = sberRates.cny || 0;
-      if (usedRate <= 0) {
-        await ctx.reply('Курс CNY недоступен. Попробуйте позже.');
-        return ctx.scene.leave();
-      }
-      costRub = Math.ceil(amount * usedRate * multiplier); // Аналогично, округление вверх
-      path = `CNY → RUB (Сбер)`;
+      const commissionPercent = costRub > 0 ? (commissionRub / (costRub - commissionRub)) * 100 : 0;
+      const finalPrice = calculatePrice(costRub, category);
+      const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
 
-    } else if (currency === 'taobao') {
-      if (!taobaoRate || taobaoRate === 0) {
-        await ctx.reply('Курс Taobao не задан! Сначала используйте /adjust');
-        return ctx.scene.leave();
-      }
-      if (!sberRates.usd || sberRates.usd <= 0) {
-        await ctx.reply('Курс USD недоступен. Попробуйте позже.');
-        return ctx.scene.leave();
-      }
-      const amountUSD = amount / taobaoRate; // CNY → USD (исправил: деление, т.к. taobaoRate - это CNY/USD? Подтверди, если это USD/CNY)
-      // Примечание: в твоём коде было amount * taobaoRate, но по примеру 69.9 CNY * taobaoRate = 10.1 USD ⇒ taobaoRate ≈0.1445 USD/CNY
-      // Если taobaoRate = CNY/USD (напр. 6.92), то amountUSD = amount / taobaoRate
-      // Я предположил CNY/USD; если иначе - скорректируй
-      costRub = Math.ceil(amountUSD * sberRates.usd * multiplier);
-      path = `US/CN (Taobao: ${taobaoRate}) → RUB (Сбер)`;
-      usedRate = sberRates.usd;
+      await ctx.editMessageText(
+        `*Результат*\n\n` +
+        `Ввод: \`${amount} ${currency === 'usd' ? '$' : '¥'}\`\n` +
+        `Конвертация: *${path}*\n` +
+        (currency === 'taobao' ? `Конвертация в USD: \`${amountUSD.toFixed(2)} $\`\n` : '') +
+        `Себестоимость: \`${costRub.toFixed(2)} ₽\`\n` +
+        `КУРС: \`${usedRate.toFixed(2)} ₽\`\n` +
+        `Категория: *${CATEGORIES[category]}*\n` +
+        `Комиссия: *+${commissionPercent.toFixed(1)}%* (\`${commissionRub.toFixed(2)} ₽\`)\n\n` +
+        `Наценка: *+${markupPercent}%*\n\n` +
+        `Цена для покупателя: *${Math.ceil(finalPrice)} ₽*`,
+        { parse_mode: 'Markdown' }
+      );
+
+    } catch (error) {
+      console.error('Ошибка при расчёте:', error.message);
+      await ctx.reply('Извините, произошла ошибка при получении курсов. Давайте попробуем снова.');
+      await ctx.reply('Введите /calc, чтобы начать заново.');
     }
 
-    if (costRub === 0) {
-      await ctx.reply('Не удалось рассчитать. Проверьте курсы.');
-      return ctx.scene.leave();
-    }
-
-    const finalPrice = calculatePrice(costRub, category);
-    const markupPercent = ((MARKUPS[category] - 1) * 100).toFixed(0);
-
-    await ctx.editMessageText(
-      `*Результат*\n\n` +
-      `Ввод: \`${amount} ${currency === 'usd' ? '$' : '¥'}\`\n` +
-      `Конвертация: *${path}*\n` +
-      (currency === 'taobao'
-          ? `Конвертация в USD: \`${(amount / taobaoRate).toFixed(2)} $\`\n` // Исправил на /, если taobaoRate = CNY/USD; подкорректируй если нужно
-          : ''
-      ) +
-      `Себестоимость: \`${costRub.toFixed(2)} ₽\`\n` +
-      `КУРС: * ${usedRate} ${currency === 'usd' ? '$' : '¥'}*\n\n` +
-      `Категория: *${CATEGORIES[category]}*\n` +
-      `Наценка: *+${markupPercent}%*\n\n` +
-      `Комиссия: *+${commissionPercent}%*\n\n` +  // Вернул комиссию для проверки (конвертация + сервис, как ты описала)
-      `Цена для покупателя: *${Math.ceil(finalPrice)} ₽*`,
-      { parse_mode: 'Markdown' }
-    );
-
-    await ctx.reply('Ещё расчёт? → /calc');
     return ctx.scene.leave();
   }
 );
