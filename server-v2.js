@@ -10,9 +10,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
 const PORT = 3001;
 
-// 1. Отдаём статические файлы второй версии (dist-v2)
 app.use(express.static(path.join(__dirname, 'dist-v2')));
 
 app.use(express.json());
