@@ -1,8 +1,8 @@
+// server-v2.js
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Импорт бизнес-логики (курсы и расчёты)
 import { getSberRates } from './src/parser.js';
 import { MARKUPS, CATEGORIES } from './src/utils/formulas.js';
 
@@ -12,20 +12,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3001;
 
-// Отключаем кэширование
-app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  next();
-});
-
+app.use(express.static(path.join(__dirname, 'dist-v2')));
 app.use(express.json());
 
-// ←←← ГЛАВНОЕ ИЗМЕНЕНИЕ: используем dist-v2
-app.use(express.static(path.join(__dirname, 'dist-v2')));
-
-// API роуты (одинаковые для обоих сайтов)
+// API роуты
 app.get('/api/rates', async (req, res) => {
   try {
     const rates = await getSberRates();
@@ -49,10 +39,12 @@ app.post('/api/calculate', (req, res) => {
     const withPlatformFee = paidRate * 1.035;
     const finalMultiplier = withPlatformFee * markup;
 
-    const costRub = amountUSD * withPlatformFee;
+    const costRub = amountUSD * paidRate;
     const totalCostRub = amountUSD * finalMultiplier;
+
     const commissionRub = costRub - (amountUSD * usdRate);
     const commissionPercent = ((withPlatformFee / usdRate) - 1) * 100;
+
     const markupPercent = ((markup - 1) * 100).toFixed(0);
 
     res.json({
@@ -71,8 +63,8 @@ app.post('/api/calculate', (req, res) => {
   }
 });
 
-// Для всех остальных путей отдаём index.html ИЗ dist-v2
-app.get('*', (req, res) => {
+// ←←← ИСПРАВЛЕННЫЙ catch-all маршрут (самое важное изменение)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'dist-v2', 'index.html'));
 });
 
