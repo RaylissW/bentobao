@@ -2,37 +2,36 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// ←←← ВСЯ ЛОГИКА ИЗ ПЕРВОГО СЕРВЕРА
+// Импорт бизнес-логики (курсы и расчёты)
 import { getSberRates } from './src/parser.js';
-import { MARKUPS, CATEGORIES, calculatePrice } from './src/utils/formulas.js';
+import { MARKUPS, CATEGORIES } from './src/utils/formulas.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const PORT = 3001;
 
+// Отключаем кэширование
 app.use((req, res, next) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
   next();
 });
 
-const PORT = 3001;
-
-app.use(express.static(path.join(__dirname, 'dist-v2')));
-
 app.use(express.json());
 
-// 2. Все API-роуты (точно как в server.js)
+// ←←← ГЛАВНОЕ ИЗМЕНЕНИЕ: используем dist-v2
+app.use(express.static(path.join(__dirname, 'dist-v2')));
+
+// API роуты (одинаковые для обоих сайтов)
 app.get('/api/rates', async (req, res) => {
   try {
     const rates = await getSberRates();
-    res.json({
-      success: true,
-      usd: rates.usd || 0
-    });
+    res.json({ success: true, usd: rates.usd || 0 });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Не удалось получить курс' });
   }
 });
@@ -67,12 +66,13 @@ app.post('/api/calculate', (req, res) => {
       usedRate: Number(paidRate.toFixed(2))
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: 'Ошибка при расчёте' });
   }
 });
 
-// 3. Catch-all для React SPA (чтобы работали все маршруты)
-app.get('/{*splat}', (req, res) => {
+// Для всех остальных путей отдаём index.html ИЗ dist-v2
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist-v2', 'index.html'));
 });
 
